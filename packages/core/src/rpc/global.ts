@@ -4,6 +4,8 @@ import { createHooks } from 'hookable'
 
 const hooks = createHooks()
 
+let devToolsServerListenerInitialized = false
+
 export enum DevToolsMessagingEvents {
   INSPECTOR_TREE_UPDATED = 'inspector-tree-updated',
   INSPECTOR_STATE_UPDATED = 'inspector-state-updated',
@@ -167,8 +169,14 @@ export const functions = {
   },
   // listen to devtools server events
   initDevToolsServerListener() {
+    if (devToolsServerListenerInitialized)
+      return
+
+    devToolsServerListenerInitialized = true
+
     const rpcServer = getRpcServer<RPCFunctions>()
     const broadcast = rpcServer.broadcast
+
     devtools.ctx.hooks.hook(DevToolsMessagingHookKeys.SEND_INSPECTOR_TREE_TO_CLIENT, (payload) => {
       broadcast.emit(DevToolsMessagingEvents.INSPECTOR_TREE_UPDATED, stringify(payload))
     })
